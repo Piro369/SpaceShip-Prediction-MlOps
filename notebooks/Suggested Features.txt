@@ -1,0 +1,5 @@
+Passenger_Id --> 2 featrues:  (gggg) i.e group no & (pp) person no
+Cabin --> 3 features: cabin & num & side
+Age --> to Age groups
+RoomService, FoodCourt, ShoppingMall, Spa, VRDec --> Add them
+Name --> 2 or 3 features: first & last name
