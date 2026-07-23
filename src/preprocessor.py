@@ -88,7 +88,7 @@ def create_and_save_pipeline(X_train,X_test,path):
     imputer_step = ColumnTransformer(
         [
             ('SimpleImputer', SimpleImputer(strategy='most_frequent'), cat_cols),
-            ('IterativeImputer', IterativeImputer(estimator=ExtraTreesRegressor()), num_cols)
+            ('IterativeImputer', IterativeImputer(estimator=ExtraTreesRegressor(n_estimators=50,max_depth=7)), num_cols)
         ],
         remainder='passthrough', 
         verbose_feature_names_out=False
@@ -138,7 +138,7 @@ def create_and_save_pipeline(X_train,X_test,path):
     X_train_processed = master_pipeline.fit_transform(X_train)
     X_test_processed = master_pipeline.transform(X_test)
 
-    joblib.dump(master_pipeline,path+'preprocessor_pipeline.joblib')
+    joblib.dump(master_pipeline,path+'preprocessor_pipeline.joblib',compress=3)
     print('Pipeline Saved Succesfully')
     
     return X_train_processed,X_test_processed
