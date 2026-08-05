@@ -1,0 +1,102 @@
+schema: '2.0'
+stages:
+  split_data:
+    cmd: python src/split_data.py
+    deps:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 8cf8d6d39aecf7cc6466eb79b0ed6e1b
+      size: 805421
+    - path: src/split_data.py
+      hash: md5
+      md5: af21888dcd8ca17b39ff21874450f23f
+      size: 1151
+    outs:
+    - path: data/processed/X_test.parquet
+      hash: md5
+      md5: 52e647d9117ba7d1ddbe558a32d0f6d6
+      size: 117685
+    - path: data/processed/X_train.parquet
+      hash: md5
+      md5: d4106a71822f7301a41e2ba321e2a744
+      size: 224137
+    - path: data/processed/y_test.parquet
+      hash: md5
+      md5: f725ad5ff4235166edb7c72abf00f5a0
+      size: 1503
+    - path: data/processed/y_train.parquet
+      hash: md5
+      md5: f7f79d38da06066373cf7bdb00dc265a
+      size: 1872
+  preprocessor:
+    cmd: python src/preprocessor.py
+    deps:
+    - path: data/processed/X_test.parquet
+      hash: md5
+      md5: 52e647d9117ba7d1ddbe558a32d0f6d6
+      size: 117685
+    - path: data/processed/X_train.parquet
+      hash: md5
+      md5: d4106a71822f7301a41e2ba321e2a744
+      size: 224137
+    - path: data/processed/y_test.parquet
+      hash: md5
+      md5: f725ad5ff4235166edb7c72abf00f5a0
+      size: 1503
+    - path: data/processed/y_train.parquet
+      hash: md5
+      md5: f7f79d38da06066373cf7bdb00dc265a
+      size: 1872
+    - path: src/preprocessor.py
+      hash: md5
+      md5: 5e7fb749826a89981f0e9319381254f9
+      size: 9256
+    outs:
+    - path: data/interim/X_test_transformed.parquet
+      hash: md5
+      md5: cca647748c332888837b2a60f1fc7f7f
+      size: 102247
+    - path: data/interim/X_train_transformed.parquet
+      hash: md5
+      md5: 1cf6a45cb558e9c02d8288626dce1cbd
+      size: 169391
+    - path: data/interim/y_test.parquet
+      hash: md5
+      md5: f725ad5ff4235166edb7c72abf00f5a0
+      size: 1503
+    - path: data/interim/y_train.parquet
+      hash: md5
+      md5: f7f79d38da06066373cf7bdb00dc265a
+      size: 1872
+    - path: models/preprocessor_pipeline.joblib
+      hash: md5
+      md5: 95da57d7d7b33d375f28fc7855b0d9b4
+      size: 4198761
+  model_training:
+    cmd: python src/model_training.py
+    deps:
+    - path: data/interim/X_test_transformed.parquet
+      hash: md5
+      md5: cca647748c332888837b2a60f1fc7f7f
+      size: 102247
+    - path: data/interim/X_train_transformed.parquet
+      hash: md5
+      md5: 1cf6a45cb558e9c02d8288626dce1cbd
+      size: 169391
+    - path: data/interim/y_test.parquet
+      hash: md5
+      md5: f725ad5ff4235166edb7c72abf00f5a0
+      size: 1503
+    - path: data/interim/y_train.parquet
+      hash: md5
+      md5: f7f79d38da06066373cf7bdb00dc265a
+      size: 1872
+    - path: src/model_training.py
+      hash: md5
+      md5: 7e5d1cae68fc3fbd093aea4548593970
+      size: 3833
+    outs:
+    - path: models/best_model.joblib
+      hash: md5
+      md5: f8a708ddb63e5af269d64d77a776d459
+      size: 652486

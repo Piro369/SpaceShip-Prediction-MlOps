@@ -1,0 +1,38 @@
+stages:
+  split_data:
+    cmd: python src/split_data.py
+    deps:
+    - src/split_data.py
+    - data/raw/train.csv
+    outs:
+    - data/processed/X_train.parquet
+    - data/processed/X_test.parquet
+    - data/processed/y_train.parquet
+    - data/processed/y_test.parquet
+
+  preprocessor:
+    cmd: python src/preprocessor.py
+    deps:
+    - src/preprocessor.py
+    - data/processed/X_train.parquet
+    - data/processed/X_test.parquet
+    - data/processed/y_train.parquet
+    - data/processed/y_test.parquet
+    outs:
+    - models/preprocessor_pipeline.joblib
+    - data/interim/X_train_transformed.parquet
+    - data/interim/X_test_transformed.parquet
+    - data/interim/y_train.parquet
+    - data/interim/y_test.parquet
+
+  model_training:
+    cmd: python src/model_training.py
+    deps:
+    - src/model_training.py
+    - data/interim/X_train_transformed.parquet
+    - data/interim/X_test_transformed.parquet
+    - data/interim/y_train.parquet
+    - data/interim/y_test.parquet
+    outs:
+    - models/best_model.joblib
+
