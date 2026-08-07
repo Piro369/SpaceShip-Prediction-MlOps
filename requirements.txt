@@ -1,14 +1,11 @@
-ipython
-loguru
-matplotlib
-mkdocs
-notebook
+fastapi
+pydantic
+scikit-learn
+lightgbm
+joblib
 numpy
 pandas
-pip
 python-dotenv
-ruff
-scikit-learn
-tqdm
-typer
+loguru
+uvicorn
 -e .
