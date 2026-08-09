@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # SpaceShip-End-to-End-MLOps
 
 <a target="_blank" href="https://cookiecutter-data-science.drivendata.org/">
@@ -59,3 +60,6 @@ It is an End to End project focusing on MLOps techniques. The project involves p
 
 --------
 
+=======
+# SpaceShip-Prediction-MlOps
+>>>>>>> aecf4704596d4831ae147f68a3586eeb163d593f
