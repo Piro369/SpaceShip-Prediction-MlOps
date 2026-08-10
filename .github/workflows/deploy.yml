@@ -1,0 +1,107 @@
+name: MLOps Containerize and Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - deploy-best-model  # Triggers when pushing to your best_model branch
+
+jobs:
+  # ==========================================
+  # STAGE 1: Containerize & Push to ECR
+  # ==========================================
+  build-and-push:
+    name: Build Image & Push to ECR
+    runs-on: self-hosted  # Executes on your EC2 GitHub runner
+
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.image_tag }}
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set Image Tag
+        id: set-tag
+        run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Pull Model Artifacts from S3 via DVC
+        run: |
+          # Pull pre-trained model and preprocessor joblib files tracked by DVC
+          dvc pull best_model.joblib preprocessor_pipeline.joblib
+
+      - name: Build Docker Image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.set-tag.outputs.image_tag }}
+        run: |
+          docker build \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+
+      - name: Push Docker Image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.set-tag.outputs.image_tag }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+  # ==========================================
+  # STAGE 2: Pull from ECR & Deploy Container
+  # ==========================================
+  deploy:
+    name: Pull Image from ECR & Run App
+    needs: build-and-push  # Executes only after Stage 1 succeeds
+    runs-on: self-hosted   # Executes on your EC2 instance
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull Latest Container Image from ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Run Docker Container
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        run: |
+          # Stop and remove previous container instance if active
+          docker stop spaceship-fastapi-app || true
+          docker rm spaceship-fastapi-app || true
+
+          # Run the container in detached background mode
+          docker run -d \
+            --name spaceship-fastapi-app \
+            --restart always \
+            -p 8000:8000 \
+            $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Verify Running Container Status
+        run: |
+          docker ps -f name=spaceship-fastapi-app
