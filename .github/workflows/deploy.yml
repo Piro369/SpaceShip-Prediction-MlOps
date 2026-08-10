@@ -3,15 +3,15 @@ name: MLOps Containerize and Deploy Pipeline
 on:
   push:
     branches:
-      - deploy-best-model  # Triggers when pushing to your best_model branch
+      - deploy-best-model
 
 jobs:
   # ==========================================
-  # STAGE 1: Containerize & Push to ECR
+  # STAGE 1: Build & Push (Runs on GitHub Ubuntu)
   # ==========================================
   build-and-push:
     name: Build Image & Push to ECR
-    runs-on: self-hosted  # Executes on your EC2 GitHub runner
+    runs-on: ubuntu-latest  # <-- Runs on fast, clean GitHub servers!
 
     outputs:
       image_tag: ${{ steps.set-tag.outputs.image_tag }}
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
-      # AUTHENTICATE FIRST
+      # 1. Authenticate with AWS first
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -28,20 +28,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # THEN PULL WITH DVC
-      - name: Install DVC & Pull Model Artifacts
-        run: |
-          # 1. Ensure Python 3 is installed
-          sudo dnf install -y python3 python3-pip
-          
-          # 2. Create and activate a clean virtual environment
-          python3 -m venv dvc-venv
-          source dvc-venv/bin/activate
-          
-          # 3. Install DVC and pull the artifacts securely inside the venv
-          pip install --upgrade pip
-          pip install dvc dvc-s3
-          dvc pull best_model.joblib preprocessor_pipeline.joblib
+      # 2. Use the official DVC action (Bypasses all pip dependency hell)
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+
+      # 3. Pull Model Artifacts
+      - name: Pull Model Artifacts from S3 via DVC
+        run: dvc pull best_model.joblib preprocessor_pipeline.joblib
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -71,12 +64,12 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   # ==========================================
-  # STAGE 2: Pull from ECR & Deploy Container
+  # STAGE 2: Deploy Container (Runs on your EC2)
   # ==========================================
   deploy:
     name: Pull Image from ECR & Run App
-    needs: build-and-push  # Executes only after Stage 1 succeeds
-    runs-on: self-hosted   # Executes on your EC2 instance
+    needs: build-and-push  
+    runs-on: self-hosted   # <-- Stays on your EC2 to deploy the container
 
     steps:
       - name: Configure AWS Credentials
