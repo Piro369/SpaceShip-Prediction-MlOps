@@ -34,7 +34,7 @@ jobs:
 
       # 3. Pull Model Artifacts
       - name: Pull Model Artifacts from S3 via DVC
-        run: dvc pull best_model.joblib preprocessor_pipeline.joblib
+        run: dvc pull models/best_model.joblib models/preprocessor_pipeline.joblib
 
       - name: Log in to Amazon ECR
         id: login-ecr
