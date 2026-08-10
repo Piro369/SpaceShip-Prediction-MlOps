@@ -20,11 +20,6 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11' # Change this to match your training environment
-
       # AUTHENTICATE FIRST
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
