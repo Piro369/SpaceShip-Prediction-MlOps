@@ -20,12 +20,25 @@ jobs:
       - name: Checkout Repository Code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5' # Change this to match your training environment
+
+      # AUTHENTICATE FIRST
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      # THEN PULL WITH DVC
+      - name: Install DVC & Pull Model Artifacts
+        run: |
+          python -m pip install --upgrade pip
+          pip install dvc dvc-s3
+          dvc pull best_model.joblib preprocessor_pipeline.joblib
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -34,11 +47,6 @@ jobs:
       - name: Set Image Tag
         id: set-tag
         run: echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
-
-      - name: Pull Model Artifacts from S3 via DVC
-        run: |
-          # Pull pre-trained model and preprocessor joblib files tracked by DVC
-          dvc pull best_model.joblib preprocessor_pipeline.joblib
 
       - name: Build Docker Image
         env:
