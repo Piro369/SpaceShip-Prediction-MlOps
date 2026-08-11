@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
     X_train,X_test,y_train,y_test = load_dataset(input_path)
 
-    model = train_best_model(X_train,y_train,100)
+    model = train_best_model(X_train,y_train,50)
 
     evaluate_model(model,X_test,y_test)
 
