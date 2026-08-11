@@ -47,7 +47,7 @@ This pipeline is structured to handle data versioning, experiment tracking, cont
 
 ### 1. Clone the repository and setup environment
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/Piro369/SpaceShip-Prediction-MlOps>
 cd SpaceShip-Prediction-MLOps
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts ctivate`
