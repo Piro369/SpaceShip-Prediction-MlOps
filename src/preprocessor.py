@@ -11,8 +11,6 @@ from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.preprocessing import FunctionTransformer, RobustScaler, OneHotEncoder, OrdinalEncoder
 import sklearn
 import joblib
-
-# ADD THIS LINE back to force DataFrames through the pipeline
 sklearn.set_config(transform_output="pandas")
 
 def safe_log1p(X):
@@ -20,10 +18,6 @@ def safe_log1p(X):
     return np.log1p(np.nan_to_num(X))
 
 
-
-# ---------------------------------------------------------
-# 1. Custom Transformer for String Splitting (Passenger & Cabin)
-# ---------------------------------------------------------
 class StringExtractionTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         if isinstance(X, pd.DataFrame):
@@ -70,9 +64,6 @@ class StringExtractionTransformer(BaseEstimator, TransformerMixin):
         return np.array(cols, dtype=object)
 
 
-# ---------------------------------------------------------
-# 2. Custom Transformer for Feature Engineering (TotalBill & AgeGroup)
-# ---------------------------------------------------------
 class FeatureEngineeringTransformer(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         if isinstance(X, pd.DataFrame):
@@ -190,9 +181,6 @@ def create_and_save_pipeline(X_train, X_test, path):
         verbose_feature_names_out=False
     )
 
-    # ---------------------------------------------------------
-    # 5. The Final Master Pipeline
-    # ---------------------------------------------------------
     master_pipeline = Pipeline([
         ('string_extractor', StringExtractionTransformer()),
         ('imputer', imputer_step),
