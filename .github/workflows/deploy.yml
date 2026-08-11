@@ -6,9 +6,7 @@ on:
       - deploy-best-model
 
 jobs:
-  # ==========================================
   # STAGE 1: Build & Push (Runs on GitHub Ubuntu)
-  # ==========================================
   build-and-push:
     name: Build Image & Push to ECR
     runs-on: ubuntu-latest  # <-- Runs on fast, clean GitHub servers!
@@ -63,13 +61,11 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-  # ==========================================
   # STAGE 2: Deploy Container (Runs on your EC2)
-  # ==========================================
   deploy:
     name: Pull Image from ECR & Run App
     needs: build-and-push  
-    runs-on: self-hosted   # <-- Stays on your EC2 to deploy the container
+    runs-on: self-hosted   # Stays on your EC2 to deploy the container
 
     steps:
       - name: Configure AWS Credentials
